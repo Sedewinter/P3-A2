@@ -1,7 +1,4 @@
 from microbit import *
-#We need to stock milk quantity (in dl), display it, and reset it on a button press.
-#Nice bonus include displaying the quantity in different colors in function of the quantity, having a milk smiley, etc.
-
 
 def milk_quantity():
     biberon = Image("19991:"
@@ -23,4 +20,13 @@ def milk_quantity():
         sleep(5000)
         display.show(biberon)
         sleep(1000)
-milk_quantity()
+
+
+touch_count=0
+while True:
+    if pin_logo.is_touched():
+        touch_count+=1
+        if touch_count%2==1:
+            milk_quantity()
+        else:
+            display.show(Image.DUCK) #call function for accelerometer
