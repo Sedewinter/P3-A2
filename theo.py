@@ -3,11 +3,7 @@ import radio
 #We need to stock milk quantity (in dl), display it, and reset it on a button press.
 #Nice bonus include displaying the quantity in different colors in function of the quantity, having a milk smiley, etc.
 def milk_quantity():
-    biberon = Image("19991:"
-                 "09090:"
-                 "92229:"
-                 "09290:"
-                 "09290")
+    biberon = Image("19991:""09090:""92229:""09290:""09290")
     sleep(500)
     milk=7
     #sean_add_milk()#TBD
