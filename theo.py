@@ -2,8 +2,6 @@ from microbit import *
 import radio
 #We need to stock milk quantity (in dl), display it, and reset it on a button press.
 #Nice bonus include displaying the quantity in different colors in function of the quantity, having a milk smiley, etc.
-
-
 def milk_quantity():
     biberon = Image("19991:"
                  "09090:"
@@ -25,15 +23,9 @@ def milk_quantity():
         display.show(biberon)
         sleep(1000)
 milk_quantity()
-
-
 #We need to do "a sudden 'jumping' detector".
 #Basically we want to detect instances when a baby is climbing - or trying to climb- a safety barrier.
 #The baby could also try to climb on the kitchen - which would be very dangerous.
-
-
-
-value=500
 value=500
 def climb_detector():
     alarm=False
