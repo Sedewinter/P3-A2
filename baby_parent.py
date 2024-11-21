@@ -1,18 +1,23 @@
 from microbit import *
 import radio
 import music
+
 radio.on()
 radio.config(group=99,power=5)
 biberon = Image("19991:""09090:""92229:""09290:""09290")
 should_exit=0
+
 def set_radion_frequency_band(band: int):
     return band
+
 def check_frequency():
     band=0 
     if set_radion_frequency_band(band)>50:
         music.play(music.BA_DING)#remplacer par alarme
         sleep(200)
+        
 check_frequency()
+
 def milk_quantity(milk):
     max_milk=10
     min_milk=0
@@ -37,7 +42,7 @@ def milk_quantity(milk):
                 audio.play(Sound.SOARING, wait=False)
         sleep(100)
         display.show(milk)
-        sleep(200)
+        sleep(500)
         display.show(biberon)
         sleep(1000)
         sleep
@@ -52,6 +57,13 @@ def alerting():
         message = radio.receive()
         if pin_logo.is_touched():
             return False
+
+        if button_a.get_presses():
+            radio.send("berceuse")
+
+        elif button_b.get_presses():
+            radio.send("alarme")
+            
         if message == "agite" and last_message != "agite":
             display.show(Image.SMILE)
             audio.play(Sound.GIGGLE, wait=False)
@@ -66,17 +78,21 @@ def alerting():
             display.show("Z")
             last_message = "endormi"
             
-        elif message == "CLIMBING":
-            for i in range(10):
+        elif message == "climbing":
+            for _ in range(10):
                 music.play(music.BA_DING, wait=False)
                 display.show(Image.GIRAFFE)
                 sleep(1000)
-            last_message = "CLIMBING"
+            last_message = "climbing"
+
+
+display.show(Image.HEART)
+sleep(800)
 
 milk = 0
 while True:
     if pin_logo.is_touched():
-        milk = milk_quantity(milk)
-            
+        milk = milk_quantity(milk)            
     else:
         alerting()
+        
