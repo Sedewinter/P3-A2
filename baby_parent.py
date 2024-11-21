@@ -27,7 +27,7 @@ def milk_quantity():
             milk = 0
             display.show(milk)
             sleep(1000)
-            display.clear(        )
+            display.clear()
             return True
         if button_a.get_presses():
             if milk>min_milk:
@@ -99,8 +99,6 @@ milk_mode = False
 
 while True:
     if pin_logo.is_touched():
-        touch_count+=1
-        if touch_count%2==1:
-            milk_quantity()
-        else:
-             alerting()
+        milk_quantity()
+    else:
+        alerting()
