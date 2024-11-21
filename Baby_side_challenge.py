@@ -95,7 +95,17 @@ def unpack_data(encrypted_packet, key):
             (int)lenght:           Longueur de la donnée en caractères
             (str) message:         Données reçues
     """
-
+    unpack_data=[]
+    for unpack_data in encrypted_packet:
+        try:
+            dencrypted_packet = vigenere(encrypted_packet , key )
+            type, lenght , value = encrypted_packet.split('|')
+            return type , int(lenght) , int(value)
+        except:
+            "SyntaxError"
+            unpack_data.append("0")
+        return dencrypted_packet
+        
 
 #Unpack the packet, check the validity and return the type, length and content
 def receive_packet(packet_received, key):
