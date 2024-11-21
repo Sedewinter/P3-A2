@@ -1,37 +1,53 @@
 from microbit import *
 import radio
 import music
-
-
 radio.on()
 radio.config(group=99)
 
-biberon = Image("19991:"
-                "09090:"
-                "92229:"
-                "09290:"
-                "09290")
+biberon = Image("19991:""09090:""92229:""09290:""09290")
 
+def set_radion_frequency_band(band: int):
+    return band
+    
+def check_frequency():
+    band=0 
+    if set_radion_frequency_band(band)>50:
+        music.play(music.BA_DING)#remplacer par alarme
+        sleep(200)
+check_frequency()           
 def milk_quantity():
-
-    milk = 2
-    for i in range(5):
+    milk = 0
+    max_milk=10
+    min_milk=0
+    while True:
         if pin_logo.is_touched():
             display.clear()
             return False
-        
         if button_a.is_pressed() and button_b.is_pressed():
             milk = 0
             display.show(milk)
             sleep(1000)
-            display.clear()
+            display.clear(        )
             return True
+        if button_a.get_presses():
+            if milk>min_milk:
+                milk-=1
+                display.show(milk)
+                sleep(300)
+        if button_b.get_presses():
+            if milk<max_milk:
+                milk+=1
+                display.show(milk)
+                sleep(300)
+            else:
+                display.show("TOO MUCH MILK!")
+                audio.play(Sound.SOARING, wait=False)
         
+
         display.show(milk)
-        sleep(2000)
+        sleep(200)
         display.show(biberon)
-        sleep(2000)
-        
+        sleep(1000)
     return False
 
 def alerting():
@@ -74,8 +90,17 @@ display.clear()
 
 milk_mode = False
 
+# while True:
+#     if milk_mode:
+#         milk_mode = milk_quantity() 
+#     else:
+#         milk_mode = not alerting()
+
+
 while True:
-    if milk_mode:
-        milk_mode = milk_quantity() 
-    else:
-        milk_mode = not alerting()
+    if pin_logo.is_touched():
+        touch_count+=1
+        if touch_count%2==1:
+            milk_quantity()
+        else:
+             alerting()
