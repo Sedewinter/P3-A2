@@ -1,0 +1,13 @@
+from microbit import *
+
+def temp():
+    tem=temperature()
+    display.scroll(str(tem)+"degré")
+    if 19<tem<23:
+        display.scroll("Tout va bien")
+        display.show(Image.HAPPY)      
+    else:       
+        display.scroll("Le climatiseur ne fonctionne pas")
+        display.show(Image.SAD)
+               
+temp()

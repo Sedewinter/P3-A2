@@ -24,17 +24,20 @@ def milk_quantity(milk):
     for _ in range(5):
         if button_a.is_pressed() and button_b.is_pressed():
             milk = 0
+            radio.send("0")
             display.show(milk)
             sleep(1000)
             display.clear()
         if button_a.get_presses():
             if milk>min_milk:
                 milk-=1
+                radio.send(str(milk))
                 display.show(milk)
                 sleep(500)
         if button_b.get_presses():
             if milk<max_milk:
                 milk+=1
+                radio.send(str(milk))
                 display.show(milk)
                 sleep(500)
             else:
@@ -42,7 +45,7 @@ def milk_quantity(milk):
                 audio.play(Sound.SOARING, wait=False)
         sleep(100)
         display.show(milk)
-        sleep(500)
+        sleep(1000)
         display.show(biberon)
         sleep(1000)
         sleep
