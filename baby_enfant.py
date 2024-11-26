@@ -18,21 +18,25 @@ def alarme():
 def milk_quantity(milk):
     for _ in range(5):
         display.show(milk)
-        sleep(200)
+        sleep(1000)
         display.show(biberon)
         sleep(1000)
         sleep
 
 def movement():
+    numbers = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
     last_state = None
     while True:
         message = radio.receive()
         if pin_logo.is_touched():
-            return False
+            break
+            
         if message == "berceuse":
             berceuse()
         elif message == "alarme":
             alarme()
+        elif message in numbers:
+            return int(message)
             
         x = accelerometer.get_x()
         y = accelerometer.get_y()
@@ -64,11 +68,15 @@ milk = 0
 while True:
     message = radio.receive()
     try:
-        milk = int(message)
+        if message is not None:
+            milk = int(message)
     except TypeError:
         pass
     
     if pin_logo.is_touched():
         milk_quantity(milk)            
     else:
-        movement()
+        is_it_milk = movement()
+        if is_it_milk != None:
+            milk = is_it_milk
+            
