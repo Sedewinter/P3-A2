@@ -125,6 +125,12 @@ def calculate_challenge_response(challenge):
     :param (str) challenge:            Challenge reçu
 	:return (srt)challenge_response:   Réponse au challenge
     """
+    if challenge.isdigit():
+	challenge_r= int(challenge) +1
+	response=str(challenge_r)
+	return hashing(response)
+    else :
+	return None
 
 #Respond to a connexion request by sending the hash value of the number received
 def respond_to_connexion_request(key):
