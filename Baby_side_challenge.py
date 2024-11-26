@@ -135,6 +135,9 @@ def calculate_challenge_response(challenge):
     :param (str) challenge:            Challenge reçu
 	:return (srt)challenge_response:   Réponse au challenge
     """
+    challenge_r= int(challenge) +1
+    response=str(challenge_r)
+    return hashing(response)
     
 #Ask for a new connection with a micro:bit of the same group
 def establish_connexion(key):
