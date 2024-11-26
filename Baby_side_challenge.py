@@ -86,8 +86,8 @@ def send_packet(key, type, content):
     """
     #Types, for further implementation : Milk 0, Alerting 1, Initial connection 2
     radio.on()
-    radio.config(group=99, channel=99)
-    packet=[type,len(content),content]
+    radio.config(group=99)
+    packet="{} | {} | {}".format(type,len(content),content)
     radio.send(vigenere(packet,key,decryption=False))
 send_packet("Brooks", "-1", "This is just a message, WOW")
 
