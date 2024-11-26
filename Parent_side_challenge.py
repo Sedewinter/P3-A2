@@ -11,7 +11,7 @@ import music
 radio.on()
 radio.config(group=99)
 connexion_established = False
-key = "KEYWORD"
+key ="BROOKS"
 connexion_key = None
 nonce_list = set()
 baby_state = 0
@@ -91,6 +91,11 @@ def send_packet(key, type, content):
            (str) content:   Données à envoyer
 	:return none
     """
+    radio.on()
+    radio.config(group=99)
+    packet="{} | {} | {}".format(type,len(content),content)
+    radio.send(vigenere(packet,key,decryption=False))
+    send_packet("BROOKS", "2", "This is a test message from the Parent.")
 
 #Unpack the packet, check the validity and return the type, length and content
 def unpack_data(encrypted_packet, key):
@@ -124,14 +129,14 @@ def calculate_challenge_response(challenge):
     Calcule la réponse au challenge initial de connection envoyé par l'autre micro:bit
 
     :param (str) challenge:            Challenge reçu
-	:return (srt)challenge_response:   Réponse au challenge
+    :return (str) challenge_response:   Réponse au challenge
     """
     if challenge.isdigit():
-        challenge_r= int(challenge) +1
-        response=str(challenge_r)
+        challenge_r = int(challenge) + 1
+        response = str(challenge_r)
         return hashing(response)
     else:
-	    return None
+        return None
 
 #Respond to a connexion request by sending the hash value of the number received
 def respond_to_connexion_request(key):
