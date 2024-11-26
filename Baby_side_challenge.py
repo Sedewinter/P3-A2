@@ -157,13 +157,13 @@ def establish_connexion(key):
     radio.on()
     radio.config(group=99)
     challenge=str(key)
-    send_packet(key, '2' , challenge)
+    send_packet(key, "2" , challenge)
     while True:
          incoming= radio.received()
          if incoming:
             dencrypted =vigenere(incoming , key , decryption=True)
             if  dencrypted==hashing(challenge):
-                 send_packet(key, '2' , "accepted")
+                 send_packet(key, "2" , "accepted")
                  return "connected"
 
 def main():
