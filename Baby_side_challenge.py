@@ -89,7 +89,7 @@ def send_packet(key, type, content):
     radio.config(group=99)
     packet="{} | {} | {}".format(type,len(content),content)
     radio.send(vigenere(packet,key,decryption=False))
-send_packet("Brooks", "-1", "This is just a message, WOW")
+send_packet("BROOKS", "2", "This is a test message from the Baby")
 
 #Decrypt and unpack the packet received and return the fields value
 def unpack_data(encrypted_packet, key):

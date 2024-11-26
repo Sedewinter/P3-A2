@@ -4,7 +4,7 @@ from math import *
 
 radio.on()
 radio.config(group=99)
-key = "Key" 
+key = "BROOKS" 
 
 def movement():
     while True:
