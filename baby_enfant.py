@@ -3,6 +3,7 @@ import radio
 import music
 
 radio.on()
+radio.config(group=99)
 key = "Key" 
 
 biberon = Image("19991:""09090:""92229:""09290:""09290")
