@@ -16,11 +16,6 @@ check_frequency()
     
     
 def milk_quantity():
-    biberon = Image("19991:"
-                 "09090:"
-                 "92229:"
-                 "09290:"
-                 "09290")
     sleep(500)
     milk=0
     max_milk=10
@@ -33,6 +28,9 @@ def milk_quantity():
                 milk+=1
                 display.show(milk)
                 sleep(300)
+            else:
+                display.show("TOO MUCH MILK!")
+                audio.play(Sound.SOARING, wait=False)
         if button_a.get_presses():
             if milk>min_milk:
                 milk-=1
@@ -43,10 +41,9 @@ def milk_quantity():
                 display.show(milk)
                 sleep(1000)
         display.show(biberon)
-        sleep(1000)
+        sleep(200)
         display.show(milk)
         sleep(1000)
-
 
 touch_count=0
 while True:
@@ -55,4 +52,4 @@ while True:
         if touch_count%2==1:
             milk_quantity()
         else:
-            display.show(Image.DUCK) #call function for accelerometer
+             alerting()#call function for accelerometer

@@ -2,6 +2,8 @@ from microbit import *
 import radio
 import random
 import music
+radio.on()
+radio.config(group=99)
 
 #Can be used to filter the communication, only the ones with the same parameters will receive messages
 #radio.config(group=23, channel=2, address=0x11111111)

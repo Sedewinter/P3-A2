@@ -2,6 +2,7 @@ from microbit import *
 import radio
 
 radio.on()
+radio.config(group=99)
 key = "Key"
 
 def receive():
