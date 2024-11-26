@@ -136,11 +136,11 @@ def calculate_challenge_response(challenge):
 	:return (srt)challenge_response:   Réponse au challenge
     """
     if challenge.isdigit():
-	challenge_r= int(challenge) +1
-	response=str(challenge_r)
-	return hashing(response)
+        challenge_r= int(challenge) +1
+        response=str(challenge_r)
+        return hashing(response)
     else :
-	return None
+	    return None
 	
     
 #Ask for a new connection with a micro:bit of the same group
