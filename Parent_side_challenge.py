@@ -11,7 +11,7 @@ import music
 radio.on()
 radio.config(group=99)
 connexion_established = False
-key = "KEYWORD"
+key ="BROOKS"
 connexion_key = None
 nonce_list = set()
 baby_state = 0
@@ -91,6 +91,11 @@ def send_packet(key, type, content):
            (str) content:   Données à envoyer
 	:return none
     """
+    radio.on()
+    radio.config(group=99)
+    packet="{} | {} | {}".format(type,len(content),content)
+    radio.send(vigenere(packet,key,decryption=False))
+    send_packet("Brooks", "2", "This is a test message from the Parent.")
 
 #Unpack the packet, check the validity and return the type, length and content
 def unpack_data(encrypted_packet, key):
