@@ -64,19 +64,19 @@ def alerting():
         elif button_b.get_presses():
             radio.send("alarme")
             
-        if message == "agite" and last_message != "agite":
+        if message == "Agité" and last_message != "Agité":
             display.show(Image.SMILE)
             audio.play(Sound.GIGGLE, wait=False)
-            last_message = "agite"
+            last_message = "Agité"
             
-        elif message == "alerte":
+        elif message == "Trés_agité":
             display.show(Image.CONFUSED)
             audio.play(Sound.SOARING, wait=False)
-            last_message = "alerte"
+            last_message = "Trés_agité"
             
-        elif message == "endormi":
+        elif message == "Endormi":
             display.show("Z")
-            last_message = "endormi"
+            last_message = "Endormi"
             
         elif message == "climbing":
             for _ in range(10):
