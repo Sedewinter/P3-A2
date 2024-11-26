@@ -5,9 +5,11 @@
 
 ## Fonctions notables: 
 -Détecter si le bébé est agité ou dort :sleeping:
+
 -Milk quantity tracker
+
 -Le *be:bi* détecte si l'enfant grimpe.
+
 -Le parent peut rassurer l'enfant une berceuse.
--
 
 
