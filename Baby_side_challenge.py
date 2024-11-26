@@ -104,7 +104,7 @@ def unpack_data(encrypted_packet, key):
     unpack_data=[]
     for unpack_data in encrypted_packet:
         try:
-            dencrypted_packet = vigenere(encrypted_packet , key )
+            dencrypted_packet = radio.recived(vigenere(encrypted_packet , key , decryption=True))
             type, lenght , value = encrypted_packet.split('|')
             return type , int(lenght) , int(value)
         except:
@@ -152,6 +152,17 @@ def establish_connexion(key):
     :param (str) key:                  Clé de chiffrement
 	:return (srt)challenge_response:   Réponse au challenge
     """
+    radio.on()
+    radio.config(group=99)
+    challenge=str(key)
+    send_packet(key, '2' , challenge)
+    while True:
+         incoming= radio.received()
+         if incoming:
+            dencrypted =vigenere(incoming , key , decryption=True)
+            if  dencrypted==hashing(challenge):
+                 send_packet(key, '2' , "accepted")
+                 return "connected"
 
 def main():
     return True
