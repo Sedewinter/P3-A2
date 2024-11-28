@@ -67,26 +67,34 @@ def alerting():
         elif button_b.get_presses():
             radio.send("alarme")
             
-        if message == "Agité" and last_message != "Agité":
+        if message == "Agité":
             display.show(Image.SMILE)
             audio.play(Sound.GIGGLE, wait=False)
-            last_message = "Agité"
             
         elif message == "Trés_agité":
             display.show(Image.CONFUSED)
             audio.play(Sound.SOARING, wait=False)
-            last_message = "Trés_agité"
             
         elif message == "Endormi":
             display.show("Z")
-            last_message = "Endormi"
+
+        elif message == "chaud":
+            display.show(Image("90909:""09990:""99999:""09990:""90909"))
+            for _ in range(5):
+                music.play(["C6:2", "C6:2", "G5:2", "G5:2"])
+            sleep(100)
+
+        elif message == "froid":
+            display.show(Image("90909:""09090:""90909:""09090:""90909"))
+            for _ in range(5):
+                music.play(["C6:2", "C6:2", "G5:2", "G5:2"])
+            sleep(100)
             
         elif message == "climbing":
             for _ in range(10):
                 music.play(music.BA_DING, wait=False)
                 display.show(Image.GIRAFFE)
                 sleep(1000)
-            last_message = "climbing"
 
 
 display.show(Image.HEART)
@@ -98,4 +106,4 @@ while True:
         milk = milk_quantity(milk)            
     else:
         alerting()
-        
+            
