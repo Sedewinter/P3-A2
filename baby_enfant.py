@@ -100,9 +100,11 @@ def movement():
         if state=="Endormi":
             display.show(Image.SMILE)
         elif state=="Agité":
-            display.show(Image.SAD)
+            display.show(Image.SILLY)
         elif state=="Trés_agité":
-            display.show(Image.ANGRY)
+            music.play(musique_berceuse, wait=False)
+            display.show(Image("99999:""99999:""99999:""99999:""99999"))
+            sleep(4000)
 
         if last_state != state:
             radio.send(state)
