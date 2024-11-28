@@ -76,6 +76,7 @@ def movement():
     last_state = None
     while True:
         message = radio.receive()
+        tem=temperature()
         if pin_logo.is_touched():
             break
             
@@ -85,6 +86,11 @@ def movement():
             message = alarme()
         elif message in numbers:
             return int(message)
+
+        if tem>25:
+            radio.send("chaud")
+        elif tem<17:
+            radio.send("froid")
             
         x = accelerometer.get_x()
         y = accelerometer.get_y()
