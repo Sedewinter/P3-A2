@@ -8,12 +8,60 @@ key = "Key"
 
 biberon = Image("19991:""09090:""92229:""09290:""09290")
 
+musique_berceuse = [    
+    "G4:4", "A4", "G4", "E4",
+    "G4:4", "C5", "B4:8",
+    "A4:4", "G4", "F4", "D4",
+    "G4:4", "A4", "G4:8",
+    "C5:4", "D5", "C5", "B4", 
+    "G4:4", "A4", "G4:8" 
+]
+
+musique_alarme = [
+    "C6:2", "G5:2", "C6:2", "G5:2",
+    "F5:2", "A5:2", "F5:2", "A5:2",
+    "C6:2", "G5:2", "C6:2", "G5:2",
+    "E5:2", "C5:2", "E5:2", "C5:2"
+]
+
+def saut_mouton():
+    mouton1 = Image("00000:""00000:""00000:""00000:""00807")
+    mouton2 = Image("00000:""00000:""00000:""00070:""00800")
+    mouton3 = Image("00000:""00000:""00700:""00000:""00800")
+    mouton4 = Image("00000:""00000:""00000:""07000:""00800")
+    mouton5 = Image("00000:""00000:""00000:""00000:""70800")
+    mouton6 = Image("00000:""00000:""00000:""00000:""00800")
+    frames = [mouton1, mouton2, mouton3, mouton4, mouton5, mouton6]
+    for frame in frames:
+        display.show(frame)
+        sleep(700)
+
+def signal():
+    signal1 = Image("00000:""00000:""00000:""00000:""00000")
+    signal2 = Image("00000:""00000:""00600:""00000:""00000")
+    signal3 = Image("00000:""00700:""07770:""00700:""00000")
+    signal4 = Image("00800:""08980:""89998:""08980:""00800")
+    signal5 = Image("00000:""00700:""07770:""00700:""00000")
+    signal6 = Image("00000:""00000:""00600:""00000:""00000")
+    frames = [signal1, signal2, signal3, signal4, signal5, signal6]
+    for frame in frames:
+        display.show(frame)
+        sleep(350)
+
+
 def berceuse():
-    music.play(music.PRELUDE)
+    for _ in range(3):
+        music.play(musique_berceuse, wait=False)
+        saut_mouton()
+        saut_mouton()
+    return None
 
 def alarme():
-    music.play(music.PYTHON)
-    
+    for _ in range(5):
+        music.play(musique_alarme, wait=False)
+        signal()
+        signal()
+    return None   
 
 def milk_quantity(milk):
     for _ in range(5):
@@ -32,9 +80,9 @@ def movement():
             break
             
         if message == "berceuse":
-            berceuse()
+            message = berceuse()
         elif message == "alarme":
-            alarme()
+            message = alarme()
         elif message in numbers:
             return int(message)
             
