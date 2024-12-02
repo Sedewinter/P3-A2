@@ -74,6 +74,9 @@ def milk_quantity(milk):
 def movement():
     numbers = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
     last_state = None
+    start_immobile = None  
+    endormi_compt = 30000  #compteur de temps pour savoir si le bébé est endormi
+    
     while True:
         message = radio.receive()
         tem=temperature()
@@ -96,12 +99,20 @@ def movement():
         y = accelerometer.get_y()
         z = accelerometer.get_z()
         movement_intensite = (x**2 + y**2 + z**2)*0.5
+        
         if movement_intensite < 1000000:
-            state="Endormi"
+            if start_immobile is None:
+                start_immobile = running_time()
+            elif running_time() - start_immobile >= endormi_compt:  # Immobilité confirmée
+                state = "Endormi"
+            else:
+                state = "Agité"      
         elif 1000000 <= movement_intensite < 2000000:
             state="Agité"
+            start_immobile = None 
         else:  
             state="Trés_agité"
+            start_immobile = None 
         
         if state=="Endormi":
             display.show(Image.SMILE)
@@ -135,4 +146,3 @@ while True:
         is_it_milk = movement()
         if is_it_milk != None:
             milk = is_it_milk
-            
