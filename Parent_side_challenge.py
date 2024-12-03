@@ -125,18 +125,30 @@ def receive_packet(packet_received, key):
 
 #Calculate the challenge response
 def calculate_challenge_response(challenge):
+	
     """
     Calcule la réponse au challenge initial de connection envoyé par l'autre micro:bit
 
     :param (str) challenge:            Challenge reçu
     :return (str) challenge_response:   Réponse au challenge
     """
-    if challenge.isdigit():
-        challenge_r = int(challenge) + 1
-        response = str(challenge_r)
-        return hashing(response)
-    else:
-        return None
+radio.on()
+radio.config(group=99)
+
+while True:
+    if button_a.on_appuie():
+        
+        challenge =random.randint(1, 100)
+        display.scroll("Nu:"+str(challenge))
+        radio.send(str(challenge))
+        sleep(1000)      
+        response =radio.receive()
+        if response:
+            correct_response =challenge * 2 
+            if int(response) == correct_response:
+                display.show(Image.HAPPY)
+            else:
+                display.show(Image.SAD)
 
 #Respond to a connexion request by sending the hash value of the number received
 def respond_to_connexion_request(key, challenge):
