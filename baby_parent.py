@@ -50,7 +50,23 @@ def milk_quantity(milk):
         sleep(1000)
         sleep
     return milk
-        
+
+
+
+def receive():
+  while True:
+      packet = radio.receive()
+      if packet:
+          if packet=="Endormi":
+              display.show(Image.SMILE)
+          elif packet=="Agité":
+              display.show(Image.SAD)
+          elif packet=="Trés_agité":
+              display.show(Image.ANGRY)
+          else:
+              display.scroll("UNKNOWN")
+
+      sleep(1000)
 
 def alerting():
         
@@ -67,13 +83,15 @@ def alerting():
         elif button_b.get_presses():
             radio.send("alarme")
             
-        if message == "Agité":
+        if message == "Agité" and last_message != "Agité":
             display.show(Image.SMILE)
             audio.play(Sound.GIGGLE, wait=False)
+            last_message = "Agité"
             
         elif message == "Trés_agité":
             display.show(Image.CONFUSED)
             audio.play(Sound.SOARING, wait=False)
+            last_message = "Trés_agité"
             
         elif message == "Endormi":
             display.show("Z")
@@ -95,15 +113,18 @@ def alerting():
                 music.play(music.BA_DING, wait=False)
                 display.show(Image.GIRAFFE)
                 sleep(1000)
+            last_message = "climbing"
 
 
 display.show(Image.HEART)
 sleep(800)
 
 milk = 0
+
+
 while True:
     if pin_logo.is_touched():
         milk = milk_quantity(milk)            
     else:
         alerting()
-            
+        
