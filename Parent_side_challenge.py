@@ -139,7 +139,7 @@ def calculate_challenge_response(challenge):
         return None
 
 #Respond to a connexion request by sending the hash value of the number received
-def respond_to_connexion_request(key):
+def respond_to_connexion_request(key, challenge):
     """
     Réponse au challenge initial de connection avec l'autre micro:bit
     Si il y a une erreur, la valeur de retour est vide
@@ -149,7 +149,6 @@ def respond_to_connexion_request(key):
     """
     radio.on()
     radio.config(group=99)
-    challenge=str(key)
     send_packet(key, "2" , challenge)
     while True:
          incoming= radio.received()
