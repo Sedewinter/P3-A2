@@ -107,13 +107,6 @@ def alerting():
             for _ in range(5):
                 music.play(["C6:2", "C6:2", "G5:2", "G5:2"])
             sleep(100)
-            
-        elif message == "climbing":
-            for _ in range(10):
-                music.play(music.BA_DING, wait=False)
-                display.show(Image.GIRAFFE)
-                sleep(1000)
-            last_message = "climbing"
 
 
 display.show(Image.HEART)
