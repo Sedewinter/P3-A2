@@ -90,7 +90,7 @@ def movement():
         elif message in numbers:
             return int(message)
 
-        if tem>25:
+        if tem>36:
             radio.send("chaud")
         elif tem<17:
             radio.send("froid")
