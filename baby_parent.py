@@ -3,84 +3,62 @@ import radio
 import music
 
 radio.on()
-radio.config(group=99,power=5)
-biberon = Image("19991:""09090:""92229:""09290:""09290")
-should_exit=0
+radio.config(group=99, power=5)
 
-def set_radion_frequency_band(band: int):
-    return band
+biberon = Image("19991:"
+                "09090:"
+                "92229:"
+                "09290:"
+                "09290")
 
 def check_frequency():
-    band=0 
-    if set_radion_frequency_band(band)>50:
-        music.play(music.BA_DING)#remplacer par alarme
+    # Check if the radio group is set correctly
+    band = radio.config()['group']
+    if band != 99:
+        music.play(music.BA_DING)  # Play an alert if the group is incorrect
         sleep(200)
-        
+
 check_frequency()
 
 def milk_quantity(milk):
-    max_milk=10
-    min_milk=0
-    for _ in range(5):
+    max_milk = 10
+    min_milk = 0
+    while True:
         if button_a.is_pressed() and button_b.is_pressed():
             milk = 0
             radio.send("0")
             display.show(milk)
             sleep(1000)
             display.clear()
-        if button_a.get_presses():
-            if milk>min_milk:
-                milk-=1
+            break
+        elif pin_logo.is_touched():
+            break
+        elif button_a.was_pressed():
+            if milk > min_milk:
+                milk -= 1
                 radio.send(str(milk))
                 display.show(milk)
                 sleep(500)
-        if button_b.get_presses():
-            if milk<max_milk:
-                milk+=1
+        elif button_b.was_pressed():
+            if milk < max_milk:
+                milk += 1
                 radio.send(str(milk))
                 display.show(milk)
                 sleep(500)
             else:
-                display.show("TOO MUCH MILK!")
-                audio.play(Sound.SOARING, wait=False)
+                display.scroll("TOO MUCH MILK!")
+                music.play(music.BADDY, wait=False)
         sleep(100)
-        display.show(milk)
-        sleep(1000)
-        display.show(biberon)
-        sleep(1000)
-        sleep
     return milk
 
-
-
-def receive():
-  while True:
-      packet = radio.receive()
-      if packet:
-          if packet=="Endormi":
-              display.show(Image.SMILE)
-          elif packet=="Agité":
-              display.show(Image.SAD)
-          elif packet=="Trés_agité":
-              display.show(Image.ANGRY)
-          else:
-              display.scroll("UNKNOWN")
-
-      sleep(1000)
-
 def alerting():
-        
     last_message = ""
-    
     while True:
-        message = radio.receive()
         if pin_logo.is_touched():
-            return False
-
-        if button_a.get_presses():
+            return
+        if button_a.was_pressed():
             radio.send("berceuse")
-
-        elif button_b.get_presses():
+        elif button_b.was_pressed():
             radio.send("alarme")
             
         if message == "Agité" and last_message != "Agité":
@@ -121,10 +99,8 @@ sleep(800)
 
 milk = 0
 
-
 while True:
     if pin_logo.is_touched():
-        milk = milk_quantity(milk)            
+        milk = milk_quantity(milk)
     else:
         alerting()
-        
