@@ -136,14 +136,9 @@ def calculate_challenge_response(challenge):
     :param (str) challenge:            Challenge reçu
 	:return (srt)challenge_response:   Réponse au challenge
     """
-    while True:
-        challenge = radio.receive()
-        if challenge:
-            display.scroll("Nu:"+ challenge)
-            challenge = int(challenge)
-            response = challenge * 2
-            display.scroll("R:"+str(response))
-            radio.send(str(response))
+    challenge = int(challenge)
+    response = challenge * 2
+    radio.send(str(response))
         
 def establish_connexion(key):
     """
@@ -262,9 +257,13 @@ def movement():
         last_state = state
         sleep(100)
 
-# initial display
-display.show(Image.HEART_SMALL)
-sleep(700)
+# initial display & challenge
+connexion_status = establish_connexion(key)
+if connexion_status == "connected":
+    display.show(Image.HEART_SMALL)
+    sleep(700)
+else:
+    display.scroll("ERROR")
 
 #main loop
 
