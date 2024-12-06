@@ -128,7 +128,7 @@ def calculate_challenge_response(challenge):
             response = challenge * 2
             display.scroll("R:"+str(response))
             radio.send(str(response))
-        
+#I will need to establish the actual challenge generation in itself   
 def establish_connexion(key):
     """
     Etablissement de la connexion avec l'autre micro:bit

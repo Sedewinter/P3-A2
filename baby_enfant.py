@@ -1,6 +1,7 @@
 from microbit import *
 import radio
 import music
+import secrets
 
 # Initialisation
 radio.on()
@@ -129,6 +130,9 @@ def unpack_data(encrypted_packet, key):
 
 # challenge
 
+def calculate_challenge():
+    return secrets.randbits(64)
+
 def calculate_challenge_response(challenge):
     """
     Calcule la réponse au challenge initial de connection avec l'autre micro:bit
@@ -136,8 +140,7 @@ def calculate_challenge_response(challenge):
     :param (str) challenge:            Challenge reçu
 	:return (srt)challenge_response:   Réponse au challenge
     """
-    challenge = int(challenge)
-    response = challenge * 2
+    response=challenge*2
     radio.send(str(response))
         
 def establish_connexion(key):
@@ -148,13 +151,13 @@ def establish_connexion(key):
     :param (str) key:                  Clé de chiffrement
 	:return (srt)challenge_response:   Réponse au challenge
     """
-    challenge=str(key)
+    challenge=calculate_challenge()
     send_packet(key, "2" , challenge)
     while True:
          incoming= radio.receive()
          if incoming:
-            dencrypted =vigenere(incoming , key , decryption=True)
-            if  dencrypted==hashing(challenge):
+            decrypted =vigenere(incoming , key , decryption=True)
+            if  int(decrypted)==int(challenge)*2: #I removed the unneccesary hashing, can always add it back but comsistently then
                  send_packet(key, "2" , "accepted")
                  return "connected"
 
