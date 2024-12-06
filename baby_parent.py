@@ -1,7 +1,7 @@
 from microbit import *
 import radio
 import music
-
+import secrets
 # initial configuration
 radio.on()
 radio.config(group=99, power=5)
@@ -73,20 +73,20 @@ def vigenere(message, key, decryption=False):
             text += char
     return text
 
-def send_packet(key, type, content):
+def send_packet(key, packet_type, content):
     """
     Envoie de données fournie en paramètres
     Cette fonction permet de construire, de chiffrer puis d'envoyer un paquet via l'interface radio du micro:bit
 
-    :param (str) key:       Clé de chiffrement
-           (str) type:      Type du paquet à envoyer
-           (str) content:   Données à envoyer
+    :param (str) key:           Clé de chiffrement
+           (str) packet_type:   Type du paquet à envoyer
+           (str) content:       Données à envoyer
 	:return none
     """
     radio.on()
     radio.config(group=99)
-    packet="{} | {} | {}".format(type,len(content),content)
-    radio.send(vigenere(packet,key))
+    packet="{} | {} | {}".format(packet_type,len(content),content)
+    radio.send(vigenere(packet, key)) #Send the message with encryption with the key
 
 def unpack_data(encrypted_packet, key):
     """
@@ -95,7 +95,7 @@ def unpack_data(encrypted_packet, key):
 
     :param (str) encrypted_packet: Paquet reçu
            (str) key:              Clé de chiffrement
-    :return: (str) type:          Type de paquet
+    :return: (str) packet_type:   Type de paquet
              (int) length:        Longueur de la donnée en caractères
              (str) message:       Données reçues
     """
@@ -112,6 +112,8 @@ def unpack_data(encrypted_packet, key):
         return None
 
 # challenge 
+def calculate_challenge():
+    return secrets.randbits(64)
 
 def calculate_challenge_response(challenge):
     """
@@ -126,8 +128,11 @@ def calculate_challenge_response(challenge):
             display.scroll("Nu:"+ challenge)
             challenge = int(challenge)
             response = challenge * 2
+            hashed_response=hashing(response)
             display.scroll("R:"+str(response))
-            radio.send(str(response))
+            radio.send(str(hashed_response))
+            key=challenge
+            return key
 #I will need to establish the actual challenge generation in itself   
 def establish_connexion(key):
     """
@@ -137,15 +142,20 @@ def establish_connexion(key):
     :param (str) key:                  Clé de chiffrement
 	:return (srt)challenge_response:   Réponse au challenge
     """
-    challenge=str(key)
-    send_packet(key, "2" , challenge)
     while True:
-         incoming= radio.receive()
-         if incoming:
-            dencrypted =vigenere(incoming , key , decryption=True)
-            if  dencrypted==hashing(challenge):
+        incoming= radio.receive()
+        if incoming:
+            decrypted =vigenere(incoming , key , decryption=True)
+            if  decrypted==hashing(challenge):
+                 key=challenge
                  send_packet(key, "2" , "accepted")
                  return "connected"
+        else:
+            challenge=calculate_challenge()
+            send_packet(key, "2" , challenge)
+
+
+
 
 
 # milk quantity gestion

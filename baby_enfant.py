@@ -130,6 +130,7 @@ def unpack_data(encrypted_packet, key):
 
 # challenge
 
+
 def calculate_challenge():
     return secrets.randbits(64)
 
@@ -151,15 +152,23 @@ def establish_connexion(key):
     :param (str) key:                  Clé de chiffrement
 	:return (srt)challenge_response:   Réponse au challenge
     """
-    challenge=calculate_challenge()
-    send_packet(key, "2" , challenge)
+    #The baby bebi will first send, then listne
     while True:
-         incoming= radio.receive()
-         if incoming:
+        incoming= radio.receive()
+        if not incoming:
+            challenge=calculate_challenge()
+            send_packet(key, "2" , challenge)
+        if incoming:
             decrypted =vigenere(incoming , key , decryption=True)
-            if  int(decrypted)==int(challenge)*2: #I removed the unneccesary hashing, can always add it back but comsistently then
+            if  str(decrypted)==str (hash((challenge)*2)): #I removed the unneccesary hashing, can always add it back but comsistently then
                  send_packet(key, "2" , "accepted")
-                 return "connected"
+                 key=challenge
+                 return challenge*2
+        else:
+            continue
+
+
+            
 
 
 # Fonctions
