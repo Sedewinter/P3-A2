@@ -7,6 +7,7 @@ import urandom
 radio.on()
 radio.config(group=99, power=5)
 key = "BROOKS"
+challenge=""
 milk = 0
 biberon = Image("19991:" "09090:" "92229:" "09290:" "09290")
 
@@ -143,20 +144,16 @@ def establish_connexion(key):
     :param (str) key:                  Clé de chiffrement
 	:return (srt)challenge_response:   Réponse au challenge
     """
+    sent=0
     while True:
-        incoming= radio.receive()
-        if incoming:
-            decrypted =vigenere(incoming , key , decryption=True)
-            if  decrypted==hashing(challenge):
-                 key=challenge
-                 send_packet(key, "2" , "accepted")
-                 return "connected"
-        else:
-            challenge=calculate_challenge()
-            send_packet(key, "2" , challenge)
-
-
-
+        message= radio.receive()
+        if message.isdigit():
+            calculate_challenge_response(message)
+            message=challenge
+        packet_type, length, value = unpack_data(message,key)
+        if value=="accepted":
+            key=challenge
+establish_connexion(key)
 
 
 # milk quantity gestion

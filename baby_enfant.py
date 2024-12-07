@@ -158,9 +158,8 @@ def establish_connexion(key):
     #The baby bebi will first send, then listne
     while True:
         incoming= radio.receive()
-        if not incoming:
-            challenge=calculate_challenge()
-            send_packet(key, "2" , challenge)
+        challenge=calculate_challenge()
+        send_packet(key, "2" , challenge)
         if incoming:
             decrypted =vigenere(incoming , key , decryption=True)
             if  str(decrypted)==str (hash((challenge)*2)): #I removed the unneccesary hashing, can always add it back but comsistently then
@@ -170,7 +169,7 @@ def establish_connexion(key):
         else:
             continue
 
-
+establish_connexion(key)
             
 
 
