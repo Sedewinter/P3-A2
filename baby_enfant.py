@@ -131,8 +131,8 @@ def unpack_data(encrypted_packet, key):
 # challenge
 
 
-def calculate_challenge():
-    return secrets.randbits(64)
+def calculate_challenge(bits=32):
+    return secrets.randbits(bits)
 
 def calculate_challenge_response(challenge):
     """
