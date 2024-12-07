@@ -153,7 +153,7 @@ def establish_connexion(key):
     Si il y a une erreur, la valeur de retour est vide
 
     :param (str) key:                  Clé de chiffrement
-	:return (srt)challenge_response:   Réponse au challenge
+	:return (srt) connexion_status:   Réponse au challenge
     """
     #The baby bebi will first send, then listne
     while True:
@@ -165,7 +165,7 @@ def establish_connexion(key):
             if  str(decrypted)==str (hash((challenge)*2)): #I removed the unneccesary hashing, can always add it back but comsistently then
                  send_packet(key, "2" , "accepted")
                  key=challenge
-                 return challenge*2
+                 return "connected"
         else:
             continue
 
