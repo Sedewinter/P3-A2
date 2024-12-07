@@ -1,3 +1,4 @@
+#Code pour le be:bi parent
 from microbit import *
 import radio
 import music
@@ -107,11 +108,11 @@ def unpack_data(encrypted_packet, key):
         if len(value) == int(length):
             return packet_type, int(length), value
         else:
-            return None
+            return None, None, None
 
     except Exception as e:
-        print(f"Erreur lors du décryptage ou du traitement du paquet: {e}")
-        return None
+        print("Erreur lors du décryptage ou du traitement du paquet: {}".format(e))
+        return None, None,None
 
 # challenge 
 def calculate_challenge(bits=32):
@@ -147,7 +148,7 @@ def establish_connexion(key):
     sent=0
     while True:
         message= radio.receive()
-        if message.isdigit():
+        if str(message).isdigit():
             calculate_challenge_response(message)
             message=challenge
         packet_type, length, value = unpack_data(message,key)
