@@ -2,6 +2,9 @@ from microbit import *
 import radio
 import music
 import secrets
+import os
+import urandom
+
 
 # Initialisation
 radio.on()
@@ -132,7 +135,7 @@ def unpack_data(encrypted_packet, key):
 
 
 def calculate_challenge(bits=32):
-    return secrets.randbits(bits)
+    return urandom.getrandbits(bits)
 
 def calculate_challenge_response(challenge):
     """
