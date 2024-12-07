@@ -1,9 +1,6 @@
-#Code pour le be:bi parent
 from microbit import *
 import radio
 import music
-import secrets
-import os
 import urandom
 
 
@@ -94,7 +91,7 @@ def vigenere(message, key, decryption=False):
             text += char
     return text
 
-def send_packet(key, type, content):
+def send_packet(key, type_packet, content):
     """
     Envoie de données fournie en paramètres
     Cette fonction permet de construire, de chiffrer puis d'envoyer un paquet via l'interface radio du micro:bit
@@ -104,9 +101,8 @@ def send_packet(key, type, content):
            (str) content:   Données à envoyer
 	:return none
     """
-    radio.on()
-    radio.config(group=99)
-    packet="{} | {} | {}".format(type,len(content),content)
+    content = str(content)
+    packet="{} | {} | {}".format(type_packet,len(content),content)
     radio.send(vigenere(packet,key))
 
 def unpack_data(encrypted_packet, key):
@@ -128,12 +124,11 @@ def unpack_data(encrypted_packet, key):
         else:
             return None, None
 
-    except Exception as e:
-        print(f"Erreur lors du décryptage ou du traitement du paquet: {e}")
+    except Exception:
+        print("Error")
         return None, None
 
 # challenge
-
 
 def calculate_challenge(bits=32):
     return urandom.getrandbits(bits)
@@ -143,11 +138,12 @@ def calculate_challenge_response(challenge):
     Calcule la réponse au challenge initial de connection avec l'autre micro:bit
 
     :param (str) challenge:            Challenge reçu
-	:return (srt)challenge_response:   Réponse au challenge
+	:return (str)challenge_response:   Réponse au challenge
     """
     response=challenge*2
     radio.send(str(response))
-        
+
+
 def establish_connexion(key):
     """
     Etablissement de la connexion avec l'autre micro:bit
@@ -156,22 +152,21 @@ def establish_connexion(key):
     :param (str) key:                  Clé de chiffrement
 	:return (srt) connexion_status:   Réponse au challenge
     """
-    #The baby bebi will first send, then listne
     while True:
-        incoming= radio.receive()
+        incoming = radio.receive()
         challenge=calculate_challenge()
         send_packet(key, "2" , challenge)
         if incoming:
-            decrypted =vigenere(incoming , key , decryption=True)
-            if  str(decrypted)==str (hash((challenge)*2)): #I removed the unneccesary hashing, can always add it back but comsistently then
+            print(incoming)
+            packet_type, decrypted = unpack_data(incoming, key)
+            display.scroll(str(decrypted))
+            if  str(decrypted)==str (hash(challenge*2)): 
+                 display.scroll("decrypted")
                  send_packet(key, "2" , "accepted")
                  key=challenge
                  return "connected"
         else:
-            continue
-
-establish_connexion(key)
-            
+            sleep(1000)
 
 
 # Fonctions
