@@ -156,6 +156,19 @@ def establish_connexion(key):
             key=challenge
 establish_connexion(key)
 
+def distance():
+    too_far = -78
+
+    while True:
+        message = radio.receive_full()
+        if message:
+            signal = message[1]  
+            if signal < too_far:   
+                music.play(music.BA_DING)
+                sleep(3000)
+                display.scroll('BABY TOO FAR!') 
+distance()
+
 
 # milk quantity gestion
 def milk_quantity(milk):
