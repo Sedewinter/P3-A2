@@ -142,23 +142,29 @@ def calculate_challenge_response(challenge):
     """
     response=challenge*2
     radio.send(str(response))
+    return response
 
 
 def establish_connexion(key):
     """
     Etablissement de la connexion avec l'autre micro:bit
-    Si il y a une erreur, la valeur de retour est vide
+    Si il y a une erreur, la valeur de retour est vide.
+    Le be:bi enfant est celui qui initie la connexion,
+    càd qu'il envoye le challenge initial.
 
     :param (str) key:                  Clé de chiffrement
 	:return (srt) connexion_status:   Réponse au challenge
     """
+    sent=0
     while True:
-        incoming = radio.receive()
-        challenge=calculate_challenge()
-        send_packet(key, "2" , challenge)
-        if incoming:
+        incoming = radio.receive() # Listen to communications
+        challenge=calculate_challenge() #The baby nee
+        if sent!=0:
+            send_packet(key, "2" , challenge) #envoi du challenge
+            sleep(100)
+        if incoming: #Listen for challenge answer
             print(incoming)
-            packet_type, decrypted = unpack_data(incoming, key)
+            packet_type, decrypted = unpack_data(incoming, key) #Put the packet value (content) into decrypted
             display.scroll(str(decrypted))
             if  str(decrypted)==str (hash(challenge*2)): 
                  display.scroll("decrypted")
@@ -166,7 +172,7 @@ def establish_connexion(key):
                  key=challenge
                  return "connected"
         else:
-            sleep(1000)
+            sleep(500)
 
 
 # Fonctions
@@ -234,13 +240,8 @@ def movement():
         elif message_type == "milk":
             return message
 
-<<<<<<< HEAD
-        if tem>36:
-            radio.send("chaud")
-=======
         if tem>38:
             send_packet(key, "temp", "chaud")
->>>>>>> f44f7336a37a2b4eef02579aef5a92d3aa143981
         elif tem<17:
             send_packet(key, "temp", "froid")
             
@@ -266,15 +267,9 @@ def movement():
             display.show(Image.SILLY)
         elif state=="Trés_agité":
             display.show(Image("99999:""99999:""99999:""99999:""99999"))
-<<<<<<< HEAD
-
-        if last_state != state:
-            radio.send(str(state))
-=======
             
         if last_state != state:
             send_packet(key, "state", state)
->>>>>>> f44f7336a37a2b4eef02579aef5a92d3aa143981
         last_state = state
         sleep(100)
 
@@ -290,19 +285,12 @@ else:
 
 milk = 0
 while True:
-<<<<<<< HEAD
     message = radio.receive()
     try:
         if message is not None:
             milk = str(message)
     except TypeError:
         pass
-=======
-    data = radio.receive()
-    message_type, message = unpack_data(data, key)
-    if message_type == "milk":
-        milk = message
->>>>>>> f44f7336a37a2b4eef02579aef5a92d3aa143981
     
     if pin_logo.is_touched():
         milk_quantity(milk)

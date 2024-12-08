@@ -126,16 +126,14 @@ def calculate_challenge_response(challenge):
 	:return (srt)challenge_response:   Réponse au challenge
     """
     while True:
-        challenge = radio.receive()
         if challenge:
-            display.scroll("Nu:"+ challenge)
-            challenge = int(challenge)
-            response = challenge * 2
-            hashed_response=hashing(response)
-            display.scroll("R:"+str(response))
-            radio.send(str(hashed_response))
-            key=challenge
-            return key
+            display.scroll("Nu: {}".format(challenge))
+            challenge = int(challenge) #Make sure the challenge is converted into integers
+            response = challenge * 2 #We multiply the challenge by 2 as a security measure
+            hashed_response=hashing(response) #We hash the number. Since the sender already has the initial number, sending a hash is no problem.
+            display.scroll("R: {}".format(str(response)))
+            radio.send_packet(key, "2", str(hashed_response)) #Sending the hashed number
+            return response
 #I will need to establish the actual challenge generation in itself   
 def establish_connexion(key):
     """
@@ -147,18 +145,22 @@ def establish_connexion(key):
     """
     sent=0
     while True:
-        message= radio.receive()
-        if str(message).isdigit():
-            calculate_challenge_response(message)
-            message=challenge
-        packet_type, length, value = unpack_data(message,key)
-        if value=="accepted":
-            key=challenge
-establish_connexion(key)
+        message= radio.receive() #Listen for messages
+        if message:
+            packet_type, length, value = unpack_data(message,key)
+            if str(value).isdigit(): #Check if the message is a number, in which case it is likely a challenge.
+                calculate_challenge_response(value)
+            if value=="accepted":
+                key=challenge
+                return "connected"
+
+connexion_status = establish_connexion(key)
+if connexion_status == "connected":
+    display.show(Image.HEART_SMALL)
+    sleep(700)
 
 def distance():
     too_far = -78
-
     while True:
         message = radio.receive_full()
         if message:
@@ -168,6 +170,8 @@ def distance():
                 sleep(3000)
                 display.scroll('BABY TOO FAR!') 
 distance()
+
+
 
 
 # milk quantity gestion
@@ -217,20 +221,6 @@ def alerting():
         elif button_b.get_presses():
             send_packet(key, "command", "alarme")
 
-<<<<<<< HEAD
-        elif message == "chaud":
-            display.show(Image("90909:""09990:""99999:""09990:""90909"))
-            for _ in range(5):
-                music.play(["C6:2", "C6:2", "G5:2", "G5:2"])
-            sleep(100)
-
-        elif message == "froid":
-            display.show(Image("90909:""09090:""90909:""09090:""90909"))
-            for _ in range(5):
-                music.play(["C6:2", "C6:2", "G5:2", "G5:2"])
-            sleep(100)
-
-=======
         if message:
             if message == "Agité" and last_message != "Agité":
                 display.show(Image.SMILE)
@@ -255,7 +245,6 @@ def alerting():
             else:
                 display.scroll("UNKNOWN")
         sleep(100)
->>>>>>> f44f7336a37a2b4eef02579aef5a92d3aa143981
 
 # initial display
 display.show(Image.HEART)
