@@ -210,7 +210,7 @@ def alerting():
     while True:
         data = radio.receive()
         typ, lenght, message = unpack_data(data, key)
-	distance()
+        distance()
         
         if pin_logo.is_touched():
             return False
