@@ -141,7 +141,7 @@ def calculate_challenge_response(challenge):
 	:return (str)challenge_response:   Réponse au challenge
     """
     response=challenge*2
-    radio.send(str(response))
+    send_packet(key, "2", str(response))
     return response
 
 
@@ -166,7 +166,7 @@ def establish_connexion(key):
             print(incoming)
             packet_type, decrypted = unpack_data(incoming, key) #Put the packet value (content) into decrypted
             display.scroll(str(decrypted))
-            if  str(decrypted)==str (hash(challenge*2)): 
+            if  str(decrypted)==str(hashing(challenge*2)): 
                  display.scroll("decrypted")
                  send_packet(key, "2" , "accepted")
                  key=challenge

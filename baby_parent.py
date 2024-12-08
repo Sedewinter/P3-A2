@@ -132,7 +132,7 @@ def calculate_challenge_response(challenge):
             response = challenge * 2 #We multiply the challenge by 2 as a security measure
             hashed_response=hashing(response) #We hash the number. Since the sender already has the initial number, sending a hash is no problem.
             display.scroll("R: {}".format(str(response)))
-            radio.send_packet(key, "2", str(hashed_response)) #Sending the hashed number
+            send_packet(key, "2", str(hashed_response)) #Sending the hashed number
             return response
 #I will need to establish the actual challenge generation in itself   
 def establish_connexion(key):
