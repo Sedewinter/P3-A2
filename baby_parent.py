@@ -1,8 +1,9 @@
 #Code pour le be:bi parent
+#Importing the modules needed
 from microbit import *
 import radio
 import music
-import urandom
+import urandom #this module choose the best available seed for cryptographically secure PRNG.
 # initial configuration
 radio.on()
 radio.config(group=99, power=5)
@@ -11,7 +12,8 @@ challenge=""
 milk = 0
 biberon = Image("19991:" "09090:" "92229:" "09290:" "09290")
 
-# crypt
+#Cryptage
+#Hashing: this is the default hashing
 def hashing(string):
 	"""
 	Hachage d'une chaîne de caractères fournie en paramètre.
@@ -46,7 +48,7 @@ def hashing(string):
 			x = -2
 		return str(x)
 	return ""
-    
+#Vigenere 'encryption'
 def vigenere(message, key, decryption=False):
     text = ""
     key_length = len(key)
@@ -74,7 +76,7 @@ def vigenere(message, key, decryption=False):
         else:
             text += char
     return text
-
+#We send the packet in the Type Length Value format using vigenere encryption
 def send_packet(key, packet_type, content):
     """
     Envoie de données fournie en paramètres
@@ -158,26 +160,37 @@ def establish_connexion(key):
                 key=challenge
                 return "connected"
 
-connexion_status = establish_connexion(key)
-if connexion_status == "connected":
-    display.show(Image.HEART_SMALL)
-    sleep(700)
-
 def distance():
-    too_far = -78
-    message = radio.receive_full()
+    """
+    Mesurer la distance entre les deux microbits, et alerter si elle est trop grande.
+    pre:/
+    post: Fait sonner une alarme et affiche "FAR"
+    """
+    too_far = -78 #Signal strength treshold
+    message = radio.receive_full() #We receive in the full format, meaning we also receive signal strength.
     if message:
+        print(message)
         signal = message[1]  
-        if signal < too_far:   
+        if signal < too_far:  #Check if signal is lower than treshold 
+            print("Too far detected")
             music.play(music.BA_DING)
-            sleep(3000)
-            display.scroll('BABY TOO FAR!')  
+            display.show('FAR!')
+            sleep(1000)#Sleep is so we don't spam
+        else: 
+            sleep(500)
+            
 
 
 
 
 # milk quantity gestion
 def milk_quantity(milk):
+    """
+    Permettre aux parents d'enregister les doses de lait quotidiennes, les stocker et les afficher sur les be:bi.
+    Les doses de lait sont synchronisés.
+    pre: milk var to stock it across sessions
+    post: Displays, sync, and allow reset by pressing both buttons.
+    """
     max_milk = 10
     min_milk = 0
     for _ in range(5):
@@ -210,6 +223,10 @@ def milk_quantity(milk):
 
 # alertes 
 def alerting():
+    """
+    Une des deux fonctions principales. Elle alerte les parents sur l'état
+    du bébé. Notamment, l'état d'agitement ou de repos, et la température de la pièce.
+    """
     last_message = ""
     while True:
         data = radio.receive()
@@ -233,8 +250,6 @@ def alerting():
                 display.show(Image.CONFUSED)
                 music.play(music.POWER_DOWN, wait=False)
                 last_message = "Trés_agité"
-            elif message == "Endormi":
-                display.show("Z")
             elif message == "chaud":
                 display.show(Image("90909:" "09990:" "99999:" "09990:" "90909"))
                 for _ in range(5):
@@ -246,12 +261,15 @@ def alerting():
                     music.play(["C6:2", "C6:2", "G5:2", "G5:2"])
                 sleep(100)
             else:
-                display.scroll("UNKNOWN")
+                #elif message == "Endormi":
+                display.show("Z")
         sleep(100)
 
 # initial display
-display.show(Image.HEART)
-sleep(800)
+connexion_status = establish_connexion(key)
+if connexion_status == "connected":
+    display.show(Image.HEART)
+    sleep(500)
 
 # main loop
 while True:
