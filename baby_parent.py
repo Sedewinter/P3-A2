@@ -2,7 +2,6 @@
 from microbit import *
 import radio
 import music
-from os import urandom
 import urandom
 # initial configuration
 radio.on()
@@ -109,7 +108,8 @@ def unpack_data(encrypted_packet, key):
             return packet_type, int(length), value
         else:
             return None, None, None
-
+    except ValueError:
+        return None, None, None
     except Exception as e:
         print("Erreur lors du décryptage ou du traitement du paquet: {}".format(e))
         return None, None,None
@@ -130,8 +130,9 @@ def calculate_challenge_response(challenge):
     return response
         
 def send_hashed_response(response):
+    print("Received",response)
     hashed_response=hashing(response) #We hash the number. Since the sender already has the initial number, sending a hash is no problem.
-    #display.scroll("R: {}".format((response)))
+    print("R: {}".format((response)))
     send_packet(key, "2", str(hashed_response)) #Sending the hashed number
     return hashed_response
 def establish_connexion(key):
@@ -143,12 +144,15 @@ def establish_connexion(key):
 	:return (srt)challenge_response:   Réponse au challenge
     """
     sent=0
+    display.scroll("co")
+    print ("Co Init")
     while True:
         message= radio.receive() #Listen for messages
         if message:
             packet_type, length, value = unpack_data(message,key)
             if str(value).isdigit(): #Check if the message is a number, in which case it is likely a challenge.
                 challenge_response=calculate_challenge_response(value)
+                print(challenge_response)
                 send_hashed_response(challenge_response)
             if value=="accepted":
                 key=challenge
