@@ -2,7 +2,7 @@
 from microbit import *
 import radio
 import music
-import os
+from os import urandom
 import urandom
 # initial configuration
 radio.on()
@@ -125,16 +125,15 @@ def calculate_challenge_response(challenge):
     :param (str) challenge:            Challenge reçu
 	:return (srt)challenge_response:   Réponse au challenge
     """
-    while True:
-        if challenge:
-            display.scroll("Nu: {}".format(challenge))
-            challenge = int(challenge) #Make sure the challenge is converted into integers
-            response = challenge * 2 #We multiply the challenge by 2 as a security measure
-            hashed_response=hashing(response) #We hash the number. Since the sender already has the initial number, sending a hash is no problem.
-            display.scroll("R: {}".format(str(response)))
-            send_packet(key, "2", str(hashed_response)) #Sending the hashed number
-            return response
-#I will need to establish the actual challenge generation in itself   
+    challenge = int(challenge) #Make sure the challenge is converted into integers
+    response = str(challenge * 2) #We multiply the challenge by 2 as a security measure
+    return response
+        
+def send_hashed_response(response):
+    hashed_response=hashing(response) #We hash the number. Since the sender already has the initial number, sending a hash is no problem.
+    #display.scroll("R: {}".format((response)))
+    send_packet(key, "2", str(hashed_response)) #Sending the hashed number
+    return hashed_response
 def establish_connexion(key):
     """
     Etablissement de la connexion avec l'autre micro:bit
@@ -149,7 +148,8 @@ def establish_connexion(key):
         if message:
             packet_type, length, value = unpack_data(message,key)
             if str(value).isdigit(): #Check if the message is a number, in which case it is likely a challenge.
-                calculate_challenge_response(value)
+                challenge_response=calculate_challenge_response(value)
+                send_hashed_response(challenge_response)
             if value=="accepted":
                 key=challenge
                 return "connected"

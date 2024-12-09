@@ -133,15 +133,14 @@ def unpack_data(encrypted_packet, key):
 def calculate_challenge(bits=32):
     return urandom.getrandbits(bits)
 
-def calculate_challenge_response(challenge):
+def expected_hashed_response(challenge):
     """
     Calcule la réponse au challenge initial de connection avec l'autre micro:bit
 
     :param (str) challenge:            Challenge reçu
 	:return (str)challenge_response:   Réponse au challenge
     """
-    response=challenge*2
-    send_packet(key, "2", str(response))
+    response=hashing(str(challenge*2))
     return response
 
 
@@ -166,7 +165,7 @@ def establish_connexion(key):
             print(incoming)
             packet_type, decrypted = unpack_data(incoming, key) #Put the packet value (content) into decrypted
             display.scroll(str(decrypted))
-            if  str(decrypted)==str(hashing(challenge*2)): 
+            if  str(decrypted)==expected_hashed_response(decrypted): 
                  display.scroll("decrypted")
                  send_packet(key, "2" , "accepted")
                  key=challenge
