@@ -161,15 +161,13 @@ if connexion_status == "connected":
 
 def distance():
     too_far = -78
-    while True:
-        message = radio.receive_full()
-        if message:
-            signal = message[1]  
-            if signal < too_far:   
-                music.play(music.BA_DING)
-                sleep(3000)
-                display.scroll('BABY TOO FAR!') 
-distance()
+    message = radio.receive_full()
+    if message:
+        signal = message[1]  
+        if signal < too_far:   
+            music.play(music.BA_DING)
+            sleep(3000)
+            display.scroll('BABY TOO FAR!')  
 
 
 
@@ -211,7 +209,8 @@ def alerting():
     last_message = ""
     while True:
         data = radio.receive()
-        message = unpack_data(data, key)
+        typ, lenght, message = unpack_data(data, key)
+        distance()
         
         if pin_logo.is_touched():
             return False
