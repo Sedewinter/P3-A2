@@ -3,7 +3,7 @@ import radio
 import music
 import urandom
 
-
+display.scroll("A")
 # Initialisation
 radio.on()
 radio.config(group=99)
@@ -125,7 +125,6 @@ def unpack_data(encrypted_packet, key):
             return None, None
 
     except Exception:
-        print("Error")
         return None, None
 
 # challenge
@@ -154,22 +153,26 @@ def establish_connexion(key):
     :param (str) key:                  Clé de chiffrement
 	:return (srt) connexion_status:   Réponse au challenge
     """
-    sent=0
+    incoming = None
     while True:
-        incoming = radio.receive() # Listen to communications
+        print("yes")
         challenge=calculate_challenge() #The baby nee
-        if sent!=0:
+        while not incoming:
             send_packet(key, "2" , challenge) #envoi du challenge
-            sleep(100)
+            print(send_packet(key, "2" , challenge))
+            sleep(1000)
+            incoming = radio.receive() # Listen to communications
         if incoming: #Listen for challenge answer
             print(incoming)
-            packet_type, decrypted = unpack_data(incoming, key) #Put the packet value (content) into decrypted
-            display.scroll(str(decrypted))
-            if  str(decrypted)==expected_hashed_response(decrypted): 
-                 display.scroll("decrypted")
+            packet_type, decrypted = unpack_data(str(incoming), key) #Put the packet value (content) into decrypted
+            print(str(decrypted) + " decrypted")
+            print(expected_hashed_response(decrypted) + " attendu")
+            if decrypted == expected_hashed_response(challenge):
+                 print("decrypted gggggggg")
                  send_packet(key, "2" , "accepted")
                  key=challenge
                  return "connected"
+            sleep(1000)
         else:
             sleep(500)
 
