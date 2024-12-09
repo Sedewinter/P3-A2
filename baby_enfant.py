@@ -1,16 +1,16 @@
-#Code pour le be:bi parent
 from microbit import *
 import radio
 import music
-import secrets
-import os
 import urandom
 
+##################
+# Initialisation #
+##################
 
-# Initialisation
 radio.on()
 radio.config(group=99)
 key = "BROOKS"
+milk = 0
 
 biberon = Image("19991:""09090:""92229:""09290:""09290")
 
@@ -29,8 +29,12 @@ musique_alarme = [
     "C6:2", "G5:2", "C6:2", "G5:2",
     "E5:2", "C5:2", "E5:2", "C5:2"
 ]
-""""""
-# crypto
+
+
+###########################
+# Crypthography functions #
+###########################
+
 def hashing(string):
 	"""
 	Hachage d'une chaîne de caractères fournie en paramètre.
@@ -94,7 +98,7 @@ def vigenere(message, key, decryption=False):
             text += char
     return text
 
-def send_packet(key, type, content):
+def send_packet(key, type_packet, content):
     """
     Envoie de données fournie en paramètres
     Cette fonction permet de construire, de chiffrer puis d'envoyer un paquet via l'interface radio du micro:bit
@@ -104,9 +108,8 @@ def send_packet(key, type, content):
            (str) content:   Données à envoyer
 	:return none
     """
-    radio.on()
-    radio.config(group=99)
-    packet="{} | {} | {}".format(type,len(content),content)
+    content = str(content)
+    packet="{} | {} | {}".format(type_packet,len(content),content)
     radio.send(vigenere(packet,key))
 
 def unpack_data(encrypted_packet, key):
@@ -128,66 +131,68 @@ def unpack_data(encrypted_packet, key):
         else:
             return None, None
 
-    except Exception as e:
-        print(f"Erreur lors du décryptage ou du traitement du paquet: {e}")
+    except Exception:
         return None, None
 
-# challenge
-
+#######################
+# Challenge functions #
+#######################
 
 def calculate_challenge(bits=32):
+    """
+    Calcule un nombre pseudo-aléatoire
+    
+	:return (int) nombre aléatoire:  challenge à envoyer
+	"""
     return urandom.getrandbits(bits)
 
-def calculate_challenge_response(challenge):
+def expected_hashed_response(challenge):
     """
     Calcule la réponse au challenge initial de connection avec l'autre micro:bit
 
     :param (str) challenge:            Challenge reçu
-	:return (srt)challenge_response:   Réponse au challenge
+	:return (str) challenge_response:   Réponse au challenge
     """
-    response=challenge*2
-    radio.send(str(response))
-        
+    response=hashing(str(challenge*2))
+    return response
+
+
 def establish_connexion(key):
     """
     Etablissement de la connexion avec l'autre micro:bit
-    Si il y a une erreur, la valeur de retour est vide
+    Si il y a une erreur, la valeur de retour est vide.
+    Le be:bi enfant est celui qui initie la connexion,
+    càd qu'il envoye le challenge initial.
 
     :param (str) key:                  Clé de chiffrement
 	:return (srt) connexion_status:   Réponse au challenge
     """
-    #The baby bebi will first send, then listne
+    incoming = None
     while True:
-        incoming= radio.receive()
-        challenge=calculate_challenge()
-        send_packet(key, "2" , challenge)
-        if incoming:
-            decrypted =vigenere(incoming , key , decryption=True)
-        try:
-            response= int(decrypted)
-            if response == calculate_challenge_response(challenge):  #I removed the unneccesary hashing, can always add it back but comsistently then
+        print("yes")
+        challenge=calculate_challenge()                              # Choose a random number as the challenge
+        while not incoming:
+            send_packet(key, "2" , challenge)                        # Send challenge
+            print(send_packet(key, "2" , challenge))
+            sleep(1000)
+            incoming = radio.receive()                               # Listen to communications
+        if incoming:                                                 # Listen for challenge answer
+            print(incoming)
+            packet_type, decrypted = unpack_data(str(incoming), key) #Put the packet value (content) into decrypted
+            print(str(decrypted) + " decrypted")
+            print(expected_hashed_response(decrypted) + " attendu")
+            if decrypted == expected_hashed_response(challenge):
                  send_packet(key, "2" , "accepted")
+                 key=challenge
                  return "connected"
-        except ValueError:
-             print("invalid code")
-             continue
+            sleep(1000)
         else:
-            print("connected")
+            sleep(500)
 
-establish_connexion(key)
+#######################
+# Main loop functions #
+#######################
 
-
-def distance_baby():
-
-        radio.send('1')
-        sleep(200)
-
-
-distance_baby()
-            
-
-
-# Fonctions
 def signal():
     signal1 = Image("00000:""00000:""00000:""00000:""00000")
     signal2 = Image("00000:""00000:""00600:""00000:""00000")
@@ -213,6 +218,9 @@ def saut_mouton():
         sleep(700)
 
 def berceuse():
+    """
+    Play a lullaby with the moving image that goes with it for three times.
+    """
     for _ in range(3):
         music.play(musique_berceuse, wait=False)
         saut_mouton()
@@ -220,13 +228,29 @@ def berceuse():
     return None
 
 def alarme():
+    """
+    Play an alarm with the moving image that goes with it for five times.
+    """
     for _ in range(5):
         music.play(musique_alarme, wait=False)
         signal()
         signal()
     return None
     
+def distance_baby():
+    """
+    Send a message so the other micro:bit can verify if they are getting too far
+    away from each other.
+    """
+    radio.send('1')
+    sleep(200)
+        
 def milk_quantity(milk):
+    """
+    Display the milk quantity drinked by the child.
+    
+    :param (str) milk:                  milk quantity
+    """
     for _ in range(5):
         display.show(milk)
         sleep(1000)
@@ -234,26 +258,30 @@ def milk_quantity(milk):
         sleep(1000)
 
 def movement():
+    """
+    Main mode. It contains the accelerometer but also the thermometer, proximity, alarm and lullaby.
+    """
     last_state = None
     start_immobile = None
-    endormi_compt = 30000
-    state = "Endormi"
+    endormi_compt = 30000                                            # Timer for the sleep mode
+    state = "Endormi"                                                # Starts as asleep
     while True:
-        distance_baby()
-        tem=temperature()
+        distance_baby()                                              # Verif if the other micro:bit isn't too far
+        tem=temperature()                                            # Mesure the temperature
         data = radio.receive()
-        message_type, message = unpack_data(data, key)
-        if pin_logo.is_touched():
+        message_type, message = unpack_data(data, key)               # Receive and decrypt the last message             
+        
+        if pin_logo.is_touched():                                    # If the pin logo is touched, go in the other mode (milk)
             break
             
-        if message == "berceuse":
+        if message == "berceuse":                                    # Look if the last message is a the lullaby, alarm or a milk quantity
             berceuse()
         elif message == "alarme":
             alarme()
         elif message_type == "milk":
             return message
 
-        if tem>38:
+        if tem>36:                                                   # If the thermometer is too high or cold, send an alerte to the parent
             send_packet(key, "temp", "chaud")
         elif tem<17:
             send_packet(key, "temp", "froid")
@@ -261,7 +289,8 @@ def movement():
         x = accelerometer.get_x()
         y = accelerometer.get_y()
         z = accelerometer.get_z()
-        movement_intensite = (x**2 + y**2 + z**2)*0.5
+        movement_intensite = (x**2 + y**2 + z**2)*0.5                # Calculate the movement of the baby and attribuate each valeur to a state, sent to the parent
+         
         if movement_intensite < 1000000:
             if start_immobile is None:
                 start_immobile = running_time()
@@ -270,7 +299,7 @@ def movement():
         elif 1000000 <= movement_intensite < 2000000:
             state = "Agité"
             start_immobile = None
-        else:
+        elif movement_intensite >= 2000000 or accelerometer.was_gesture('freefall'):
             state = "Trés_agité"
             start_immobile = None
 
@@ -283,21 +312,26 @@ def movement():
             
         if last_state != state:
             send_packet(key, "state", state)
+            
         last_state = state
         sleep(100)
 
-# initial display & challenge
+###############################
+# Initial display & challenge #
+###############################
+
 connexion_status = establish_connexion(key)
-if connexion_status == "connected":
+if connexion_status == "connected":                                  # Send a challenge to the other micro:bit and display a heart if the connexion is done right
     display.show(Image.HEART_SMALL)
     sleep(700)
 else:
     display.scroll("ERROR")
 
-#main loop
+#############
+# Main loop #
+#############
 
-milk = 0
-while True:
+while True:                                                          # The loop goes to one mode to an other via the pin logo and register each new milk quantity
     message = radio.receive()
     try:
         if message is not None:
@@ -308,7 +342,7 @@ while True:
     if pin_logo.is_touched():
         milk_quantity(milk)
     else:
-        is_it_milk = movement()
+        is_it_milk = movement()                                      # Verify if the function ended because the message was a milk quantity: if yes, get registered as the new one
         if is_it_milk != None:
             milk = is_it_milk
             
