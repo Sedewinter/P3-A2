@@ -1,9 +1,12 @@
+#Code pour le be:bi parent
 from microbit import *
 import radio
 import music
+import secrets
+import os
 import urandom
 
-display.scroll("A")
+
 # Initialisation
 radio.on()
 radio.config(group=99)
@@ -26,7 +29,7 @@ musique_alarme = [
     "C6:2", "G5:2", "C6:2", "G5:2",
     "E5:2", "C5:2", "E5:2", "C5:2"
 ]
-
+""""""
 # crypto
 def hashing(string):
 	"""
@@ -91,7 +94,7 @@ def vigenere(message, key, decryption=False):
             text += char
     return text
 
-def send_packet(key, type_packet, content):
+def send_packet(key, type, content):
     """
     Envoie de données fournie en paramètres
     Cette fonction permet de construire, de chiffrer puis d'envoyer un paquet via l'interface radio du micro:bit
@@ -101,8 +104,9 @@ def send_packet(key, type_packet, content):
            (str) content:   Données à envoyer
 	:return none
     """
-    content = str(content)
-    packet="{} | {} | {}".format(type_packet,len(content),content)
+    radio.on()
+    radio.config(group=99)
+    packet="{} | {} | {}".format(type,len(content),content)
     radio.send(vigenere(packet,key))
 
 def unpack_data(encrypted_packet, key):
@@ -124,57 +128,63 @@ def unpack_data(encrypted_packet, key):
         else:
             return None, None
 
-    except Exception:
+    except Exception as e:
+        print(f"Erreur lors du décryptage ou du traitement du paquet: {e}")
         return None, None
 
 # challenge
 
+
 def calculate_challenge(bits=32):
     return urandom.getrandbits(bits)
 
-def expected_hashed_response(challenge):
+def calculate_challenge_response(challenge):
     """
     Calcule la réponse au challenge initial de connection avec l'autre micro:bit
 
     :param (str) challenge:            Challenge reçu
-	:return (str)challenge_response:   Réponse au challenge
+	:return (srt)challenge_response:   Réponse au challenge
     """
-    response=hashing(str(challenge*2))
-    return response
-
-
+    response=challenge*2
+    radio.send(str(response))
+        
 def establish_connexion(key):
     """
     Etablissement de la connexion avec l'autre micro:bit
-    Si il y a une erreur, la valeur de retour est vide.
-    Le be:bi enfant est celui qui initie la connexion,
-    càd qu'il envoye le challenge initial.
+    Si il y a une erreur, la valeur de retour est vide
 
     :param (str) key:                  Clé de chiffrement
 	:return (srt) connexion_status:   Réponse au challenge
     """
-    incoming = None
+    #The baby bebi will first send, then listne
     while True:
-        print("yes")
-        challenge=calculate_challenge() #The baby nee
-        while not incoming:
-            send_packet(key, "2" , challenge) #envoi du challenge
-            print(send_packet(key, "2" , challenge))
-            sleep(1000)
-            incoming = radio.receive() # Listen to communications
-        if incoming: #Listen for challenge answer
-            print(incoming)
-            packet_type, decrypted = unpack_data(str(incoming), key) #Put the packet value (content) into decrypted
-            print(str(decrypted) + " decrypted")
-            print(expected_hashed_response(decrypted) + " attendu")
-            if decrypted == expected_hashed_response(challenge):
-                 print("decrypted gggggggg")
+        incoming= radio.receive()
+        challenge=calculate_challenge()
+        send_packet(key, "2" , challenge)
+        if incoming:
+            decrypted =vigenere(incoming , key , decryption=True)
+        try:
+            response= int(decrypted)
+            if response == calculate_challenge_response(challenge):  #I removed the unneccesary hashing, can always add it back but comsistently then
                  send_packet(key, "2" , "accepted")
-                 key=challenge
                  return "connected"
-            sleep(1000)
+        except ValueError:
+             print("invalid code")
+             continue
         else:
-            sleep(500)
+            print("connected")
+
+establish_connexion(key)
+
+
+def distance_baby():
+
+        radio.send('1')
+        sleep(200)
+
+
+distance_baby()
+            
 
 
 # Fonctions
@@ -229,6 +239,7 @@ def movement():
     endormi_compt = 30000
     state = "Endormi"
     while True:
+        distance_baby()
         tem=temperature()
         data = radio.receive()
         message_type, message = unpack_data(data, key)
