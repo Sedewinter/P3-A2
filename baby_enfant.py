@@ -1,9 +1,6 @@
-#Code pour le be:bi parent
 from microbit import *
 import radio
 import music
-import secrets
-import os
 import urandom
 
 
@@ -29,7 +26,7 @@ musique_alarme = [
     "C6:2", "G5:2", "C6:2", "G5:2",
     "E5:2", "C5:2", "E5:2", "C5:2"
 ]
-""""""
+
 # crypto
 def hashing(string):
 	"""
@@ -94,7 +91,7 @@ def vigenere(message, key, decryption=False):
             text += char
     return text
 
-def send_packet(key, type, content):
+def send_packet(key, packet_type, content):
     """
     Envoie de données fournie en paramètres
     Cette fonction permet de construire, de chiffrer puis d'envoyer un paquet via l'interface radio du micro:bit
@@ -104,9 +101,8 @@ def send_packet(key, type, content):
            (str) content:   Données à envoyer
 	:return none
     """
-    radio.on()
-    radio.config(group=99)
-    packet="{} | {} | {}".format(type,len(content),content)
+    content = str(content)
+    packet="{} | {} | {}".format(packet_type,len(content),content)
     radio.send(vigenere(packet,key))
 
 def unpack_data(encrypted_packet, key):
@@ -128,55 +124,52 @@ def unpack_data(encrypted_packet, key):
         else:
             return None, None
 
-    except Exception as e:
-        print(f"Erreur lors du décryptage ou du traitement du paquet: {e}")
+    except Exception:
+        print("Error")
         return None, None
 
 # challenge
 
-
 def calculate_challenge(bits=32):
     return urandom.getrandbits(bits)
 
-def calculate_challenge_response(challenge):
+def expected_hashed_response(challenge):
     """
     Calcule la réponse au challenge initial de connection avec l'autre micro:bit
 
     :param (str) challenge:            Challenge reçu
-	:return (srt)challenge_response:   Réponse au challenge
+	:return (str)challenge_response:   Réponse au challenge
     """
-    response=challenge*2
-    radio.send(str(response))
-        
+    response=hashing(str(challenge*2))
+    return response
+
+
 def establish_connexion(key):
     """
     Etablissement de la connexion avec l'autre micro:bit
-    Si il y a une erreur, la valeur de retour est vide
+    Si il y a une erreur, la valeur de retour est vide.
+    Le be:bi enfant est celui qui initie la connexion,
+    càd qu'il envoye le challenge initial.
 
     :param (str) key:                  Clé de chiffrement
 	:return (srt) connexion_status:   Réponse au challenge
     """
-    #The baby bebi will first send, then listne
     while True:
-        incoming= radio.receive()
-        challenge=calculate_challenge()
-        send_packet(key, "2" , challenge)
-        if incoming:
-            decrypted =vigenere(incoming , key , decryption=True)
-        try:
-            response= int(decrypted)
-            if response == calculate_challenge_response(challenge):  #I removed the unneccesary hashing, can always add it back but comsistently then
+        incoming = radio.receive() # Listen to communications
+        challenge=calculate_challenge() #The baby nee
+        send_packet(key, "2" , challenge) #envoi du challenge
+        sleep(100)
+        if incoming: #Listen for challenge answer
+            print(incoming)
+            packet_type, decrypted = unpack_data(incoming, key) #Put the packet value (content) into decrypted
+            display.scroll(str(decrypted))
+            if  str(decrypted)==expected_hashed_response(challenge): 
+                 display.scroll("decrypted")
                  send_packet(key, "2" , "accepted")
+                 key=challenge
                  return "connected"
-        except ValueError:
-             print("invalid code")
-             continue
         else:
-            print("connected")
-
-establish_connexion(key)
-
-
+            sleep(500)
 def distance_baby():
 
         radio.send('1')
@@ -184,11 +177,12 @@ def distance_baby():
 
 
 distance_baby()
-            
-
 
 # Fonctions
 def signal():
+    """
+    This generates animations instead of an fixed image. 
+    """
     signal1 = Image("00000:""00000:""00000:""00000:""00000")
     signal2 = Image("00000:""00000:""00600:""00000:""00000")
     signal3 = Image("00000:""00700:""07770:""00700:""00000")
@@ -201,6 +195,9 @@ def signal():
         sleep(350)
 
 def saut_mouton():
+    """_summary_
+    Annimation d'un mouton
+    """
     mouton1 = Image("00000:""00000:""00000:""00000:""00807")
     mouton2 = Image("00000:""00000:""00000:""00070:""00800")
     mouton3 = Image("00000:""00000:""00700:""00000:""00800")
@@ -213,6 +210,9 @@ def saut_mouton():
         sleep(700)
 
 def berceuse():
+    """
+    Une berceuse toute jolie pour aider l'enfant à s'endormier
+    """
     for _ in range(3):
         music.play(musique_berceuse, wait=False)
         saut_mouton()
@@ -227,61 +227,69 @@ def alarme():
     return None
     
 def milk_quantity(milk):
+    """
+    Displays the milk quantity, synced from the parent's be:bi
+    """
     for _ in range(5):
         display.show(milk)
         sleep(1000)
         display.show(biberon)
         sleep(1000)
 
-def movement():
+def movement_etat():
+    """
+    Cette fonction enregistre, analyse, et communique l'état du bébé ainsi que des informations sur son environnement.
+
+
+    Returns:
+        _type_: _description_
+    """
     last_state = None
     start_immobile = None
     endormi_compt = 30000
     state = "Endormi"
     while True:
-        distance_baby()
         tem=temperature()
         data = radio.receive()
-        message_type, message = unpack_data(data, key)
+        message_type, message = unpack_data(data, key) #unpack the TLV data received to just keep the content.
         if pin_logo.is_touched():
             break
-            
+        #Inbound communications activate certain functions below
         if message == "berceuse":
             berceuse()
         elif message == "alarme":
             alarme()
         elif message_type == "milk":
             return message
-
+        #Room temperature alerts
         if tem>38:
             send_packet(key, "temp", "chaud")
         elif tem<17:
             send_packet(key, "temp", "froid")
-            
+        #Analyse the baby state to guess wheter he is asleep or agitated
         x = accelerometer.get_x()
         y = accelerometer.get_y()
         z = accelerometer.get_z()
         movement_intensite = (x**2 + y**2 + z**2)*0.5
+        #Complex sleep algorithm that only says the baby is asleep after 30 seconds
         if movement_intensite < 1000000:
             if start_immobile is None:
                 start_immobile = running_time()
             elif running_time() - start_immobile >= endormi_compt:
                 state = "Endormi"
+        #Now, we look for agitation, after sleep.
         elif 1000000 <= movement_intensite < 2000000:
             state = "Agité"
             start_immobile = None
+            display.show(Image.SILLY) #We display an image corresponding to the state
         else:
             state = "Trés_agité"
             start_immobile = None
-
+            display.show(Image("99999:""99999:""99999:""99999:""99999"))
+        #state is by default Endormi, so we put a condition here
         if state=="Endormi":
             display.show(Image.SMILE)
-        elif state=="Agité":
-            display.show(Image.SILLY)
-        elif state=="Trés_agité":
-            display.show(Image("99999:""99999:""99999:""99999:""99999"))
-            
-        if last_state != state:
+        if last_state != state: #We only send the state if it is different than the previous one
             send_packet(key, "state", state)
         last_state = state
         sleep(100)
@@ -289,7 +297,7 @@ def movement():
 # initial display & challenge
 connexion_status = establish_connexion(key)
 if connexion_status == "connected":
-    display.show(Image.HEART_SMALL)
+    display.show(Image.HEART_SMALL) #Display a small heart as opposed to a big heart for the parent.
     sleep(700)
 else:
     display.scroll("ERROR")
@@ -298,17 +306,17 @@ else:
 
 milk = 0
 while True:
-    message = radio.receive()
+    message = radio.receive() #Listen for incoming messages
     try:
         if message is not None:
-            milk = str(message)
+            if str(message).isdigit(): #Try and check for milk sync data
+                milk = str(message)
     except TypeError:
         pass
-    
-    if pin_logo.is_touched():
+    if pin_logo.is_touched(): #If pin logo is touched, we go into lsitening mode for communciations, ie
         milk_quantity(milk)
     else:
-        is_it_milk = movement()
+        is_it_milk = movement_etat() #We run the movement_etat function, and then aasociates its value to a var. movement_etat only possible return value was set to be the milk quantity.
         if is_it_milk != None:
             milk = is_it_milk
             

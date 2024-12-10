@@ -3,7 +3,7 @@
 from microbit import *
 import radio
 import music
-import urandom #this module choose the best available seed for cryptographically secure PRNG.
+import urandom # type: ignore #this module choose the best available seed for cryptographically secure PRNG.
 # initial configuration
 radio.on()
 radio.config(group=99, power=5)
@@ -104,10 +104,10 @@ def unpack_data(encrypted_packet, key):
              (str) message:       Données reçues
     """
     try:
-        decrypted_packet = vigenere(encrypted_packet, key, decryption=True)
-        packet_type, length, value = decrypted_packet.split(" | ")
-        if len(value) == int(length):
-            return packet_type, int(length), value
+        decrypted_packet = vigenere(encrypted_packet, key, decryption=True) #Decrypt the packet with Vigenere
+        packet_type, length, value = decrypted_packet.split(" | ") #Split the string in 3 to separate TLV into a list
+        if len(value) == int(length): #check if the Length in TLV is identical to the message lenght.
+            return packet_type, int(length), value #If so, it returns the values
         else:
             return None, None, None
     except ValueError:
@@ -146,7 +146,7 @@ def establish_connexion(key):
 	:return (srt)challenge_response:   Réponse au challenge
     """
     sent=0
-    display.scroll("co")
+    display.scroll("co") #Display co for letting know the user the connexion process has started
     print ("Co Init")
     while True:
         message= radio.receive() #Listen for messages
@@ -170,7 +170,7 @@ def distance():
     message = radio.receive_full() #We receive in the full format, meaning we also receive signal strength.
     if message:
         print(message)
-        signal = message[1]  
+        signal = message[1]  #Get the strength part of the message
         if signal < too_far:  #Check if signal is lower than treshold 
             print("Too far detected")
             music.play(music.BA_DING)
@@ -191,27 +191,27 @@ def milk_quantity(milk):
     pre: milk var to stock it across sessions
     post: Displays, sync, and allow reset by pressing both buttons.
     """
-    max_milk = 10
+    max_milk = 10 #Max recommended daily milk quantity for a baby
     min_milk = 0
-    for _ in range(5):
-        if button_a.is_pressed() and button_b.is_pressed():
+    for _ in range(5): #We loop 5 times before exiting
+        if button_a.is_pressed() and button_b.is_pressed(): #Reset buttons
             milk = 0
             send_packet(key, "milk", str(milk))
             display.show(milk)
             sleep(1000)
-        elif button_a.get_presses():
+        elif button_a.get_presses(): #Left button removes milk
             if milk > min_milk:
                 milk -= 1
                 send_packet(key, "milk", str(milk))
                 display.show(milk)
                 sleep(1000)
-        elif button_b.get_presses():
+        elif button_b.get_presses():#Right button adds milk
             if milk < max_milk:
                 milk += 1
                 send_packet(key, "milk", str(milk))
                 display.show(milk)
                 sleep(1000)
-            else:
+            else: #Max milk quantity reached
                 display.show("MAX!")
                 music.play(music.WAWAWAWAA, wait=False)
         sleep(100)
@@ -230,28 +230,26 @@ def alerting():
     last_message = ""
     while True:
         data = radio.receive()
-        typ, lenght, message = unpack_data(data, key)
-        distance()
-        
+        packet_type, length, message = unpack_data(data, key)
+        distance() #Call the distance function
         if pin_logo.is_touched():
             return False
-
+        #Sending  instructions to the baby be:bi
         if button_a.get_presses():
             send_packet(key, "command", "berceuse")
         elif button_b.get_presses():
             send_packet(key, "command", "alarme")
-
+        #We interpret the message we receive from the baby.
         if message:
-            if message == "Agité" and last_message != "Agité":
+            if message == "Agité":
                 display.show(Image.SMILE)
                 music.play(music.BA_DING, wait=False)
-                last_message = "Agité"
             elif message == "Trés_agité":
                 display.show(Image.CONFUSED)
                 music.play(music.POWER_DOWN, wait=False)
-                last_message = "Trés_agité"
             elif message == "chaud":
-                display.show(Image("90909:" "09990:" "99999:" "09990:" "90909"))
+                #We show an image and play music
+                display.show(Image("90909:" "09990:" "99999:" "09990:" "90909")) 
                 for _ in range(5):
                     music.play(["C6:2", "C6:2", "G5:2", "G5:2"])
                 sleep(100)
@@ -260,20 +258,21 @@ def alerting():
                 for _ in range(5):
                     music.play(["C6:2", "C6:2", "G5:2", "G5:2"])
                 sleep(100)
-            else:
-                #elif message == "Endormi":
+            elif message == "Endormi":
                 display.show("Z")
+            else: #Just ignore any other message
+                continue
         sleep(100)
 
-# initial display
+# initial secure connection
 connexion_status = establish_connexion(key)
 if connexion_status == "connected":
-    display.show(Image.HEART)
+    display.show(Image.HEART)#Displays a BIG heart, as opposed to a small heart for the baby
     sleep(500)
 
 # main loop
 while True:
-    if pin_logo.is_touched():
+    if pin_logo.is_touched(): #Switch to milk mode on pressing 'Home'buttom
         milk = milk_quantity(milk)
-    else:
+    else: #Default to alerting mode
         alerting()
