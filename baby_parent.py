@@ -174,10 +174,8 @@ def distance():
         if signal < too_far:  #Check if signal is lower than treshold 
             print("Too far detected")
             music.play(music.BA_DING)
-            display.show('FAR!')
-            sleep(1000)#Sleep is so we don't spam
-        else: 
-            sleep(500)
+            display.scroll('FAR!')
+            sleep(100)#Sleep is so we don't spam
             
 
 
